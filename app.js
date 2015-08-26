@@ -9,6 +9,7 @@ var logger = require('DVP-Common/LogHandler/CommonLogHandler.js').logger;
 var msg = require('DVP-Common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var messageFormatter = require('DVP-Common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var sre = require('swagger-restify-express');
+var format = require("stringformat");
 
 
 var hostIp = config.Host.Ip;
@@ -51,6 +52,8 @@ server.get('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next
     }).catch(function (err) {
 
         logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
+        var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
+        res.write(instance);
         res.end();
 
 
@@ -59,6 +62,49 @@ server.get('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next
     return next();
 
 });
+
+
+
+server.get('/DVP/API/:version/QueueMusic/plain/Profile/:name', function(req, res, next) {
+
+    logger.debug("DVP-QueueMusic.GetQueueMusic HTTP  ");
+
+
+    dbModel.QueueProfile.find({where: [{Name: req.params.name}]}).then(function (obj) {
+
+
+        try {
+
+            logger.debug("DVP-QueueMusic.GetQueueMusic Found ");
+
+            if(obj){
+
+                var data = format("{0}:{1}:{2}:{3}", obj.MOH, obj.FirstAnnounement, obj.Announcement, obj.AnnouncementTime);
+                logger.debug("DVP-QueueMusic.GetQueueMusic Found ", data);
+                res.write(data);
+            }
+
+
+        } catch (exp) {
+
+        }
+
+        res.end();
+
+    }).catch(function (err) {
+
+        logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
+
+        res.write("");
+        res.end();
+
+
+    });
+
+    return next();
+
+});
+
 
 
 server.post('/DVP/API/:version/QueueMusic/Profile', function(req, res, next){
@@ -110,6 +156,8 @@ server.post('/DVP/API/:version/QueueMusic/Profile', function(req, res, next){
             }).catch(function(err){
 
                 logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
+                var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
+                res.write(instance);
                 res.end();
 
 
@@ -144,7 +192,7 @@ sre.init(server, {
             POST : ['path1']
         }
     }
-)
+);
 
 
 
