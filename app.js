@@ -52,7 +52,51 @@ server.get('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next
     }).catch(function (err) {
 
         logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
-        var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
+        var instance = msg.FormatMessage(undefined,"Get Profile Failed", status,err);
+        res.write(instance);
+        res.end();
+
+
+    });
+
+    return next();
+
+});
+
+
+server.del('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next) {
+
+    logger.debug("DVP-QueueMusic.destroyQueueMusic HTTP  ");
+
+
+    dbModel.QueueProfile.find({where: [{Name: req.params.name}]}).then(function (obj) {
+
+
+        try {
+
+            if(obj) {
+
+                obj.destroy().then(function() {
+
+                });
+
+                logger.debug("DVP-QueueMusic.destroyQueueMusic Found ");
+
+                var instance = msg.FormatMessage(undefined, "Destroy Queue Music done", true, obj);
+                res.write(instance);
+
+            }
+
+        } catch (exp) {
+
+        }
+
+        res.end();
+
+    }).catch(function (err) {
+
+        logger.error("DVP-SystemRegistry.destroyQueueMusic failed ", err);
+        var instance = msg.FormatMessage(undefined,"Find Profile Failed", status,err);
         res.write(instance);
         res.end();
 
