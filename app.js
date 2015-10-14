@@ -76,11 +76,14 @@ server.del('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next
 
             if(obj) {
 
+                logger.debug("DVP-QueueMusic.destroyQueueMusic Found ");
                 obj.destroy().then(function() {
+
+                    logger.debug("DVP-QueueMusic.destroyQueueMusic destroyed ");
 
                 });
 
-                logger.debug("DVP-QueueMusic.destroyQueueMusic Found ");
+
 
                 var instance = msg.FormatMessage(undefined, "Destroy Queue Music done", true, obj);
                 res.write(instance);
