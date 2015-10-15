@@ -1,0 +1,29 @@
+{
+  "name": "DVP-QueueMusic",
+  "version": "0.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "dvp-common": "^0.0.0",
+    "dvp-dbmodels": "^0.0.3",
+    "restify": "^4.0.0",
+    "config": "^1.15.0",
+    "stringify": "^3.1.0",
+    "stringformat": "^0.0.5",
+    "swagger-restify-express": "^0.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DuoSoftware/DVP-QueueMusic.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DuoSoftware/DVP-QueueMusic/issues"
+  },
+  "homepage": "https://github.com/DuoSoftware/DVP-QueueMusic"
+}
