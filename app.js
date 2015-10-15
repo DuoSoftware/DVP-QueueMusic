@@ -4,10 +4,10 @@
 
 var restify = require('restify');
 var config = require('config');
-var dbModel = require('DVP-DBModels');
-var logger = require('DVP-Common/LogHandler/CommonLogHandler.js').logger;
-var msg = require('DVP-Common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
-var messageFormatter = require('DVP-Common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var dbModel = require('dvp-dbmodels');
+var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
+var msg = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var sre = require('swagger-restify-express');
 var format = require("stringformat");
 
