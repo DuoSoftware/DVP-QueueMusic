@@ -190,6 +190,7 @@ server.get('/DVP/API/:version/QueueMusic/plain/Profile/:name', function(req, res
 
 
 
+
 server.post('/DVP/API/:version/QueueMusic/Profile', function(req, res, next){
 
     var profileData=req.body;
@@ -259,6 +260,90 @@ server.post('/DVP/API/:version/QueueMusic/Profile', function(req, res, next){
 
 
 });
+
+server.put('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next) {
+
+    logger.debug("DVP-QueueMusic.GetQueueMusic HTTP  ");
+
+
+    dbModel.QueueProfile.find({where: [{Name: req.params.name}]}).then(function (obj) {
+
+
+
+        if(obj){
+
+            obj.updateAttributes({
+
+
+                Name: profileData.Name,
+                Description: profileData.Description,
+                Class: profileData.Class,
+                Type: profileData.Type,
+                Category: profileData.Category,
+                CompanyId:1,
+                TenantId:1,
+                MOH: profileData.MOH,
+                Announcement: profileData.Announcement,
+                FirstAnnounement:  profileData.FirstAnnounement,
+                AnnouncementTime: profileData.AnnouncementTime
+
+
+
+            }).then(function (obj) {
+                    try {
+
+
+                        logger.debug('DVP-QueueMusic.UpdateQueueMusic PGSQL object saved successful ');
+                        status = true;
+
+                        var instance = msg.FormatMessage(undefined,"Updated Profile Done", status,obj);
+                        res.write(instance);
+                        res.end();
+
+
+                    }
+                    catch (ex) {
+                        logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", ex);
+
+                    }
+
+                }).catch(function(err){
+
+                    logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", err);
+                    var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
+                    res.write(instance);
+                    res.end();
+
+
+
+                });
+
+
+        }else{
+
+            logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", err);
+            var instance = msg.FormatMessage(undefined,"No profile found", status,undefined);
+            res.write(instance);
+            res.end();
+
+        }
+
+
+
+    }).catch(function (err) {
+
+        logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
+        var instance = msg.FormatMessage(undefined,"Get Profile Failed", status,err);
+        res.write(instance);
+        res.end();
+
+
+    });
+
+    return next();
+
+});
+
 
 
 
