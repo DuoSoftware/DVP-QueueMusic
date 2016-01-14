@@ -64,6 +64,42 @@ server.get('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next
 });
 
 
+server.get('/DVP/API/:version/QueueMusic/Profiles', function(req, res, next) {
+
+    logger.debug("DVP-QueueMusic.GetQueueMusics HTTP  ");
+
+
+    dbModel.QueueProfile.findAll().then(function (obj) {
+
+
+        try {
+
+            logger.debug("DVP-QueueMusic.GetQueueMusics Found ");
+
+            var instance = msg.FormatMessage(undefined, "Get Queue Musics done", true, obj);
+            res.write(instance);
+
+        } catch (exp) {
+
+        }
+
+        res.end();
+
+    }).catch(function (err) {
+
+        logger.error("DVP-SystemRegistry.CreateQueueMusics failed ", err);
+        var instance = msg.FormatMessage(undefined,"Get Queue Musics Failed", status,err);
+        res.write(instance);
+        res.end();
+
+
+    });
+
+    return next();
+
+});
+
+
 server.del('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next) {
 
     logger.debug("DVP-QueueMusic.destroyQueueMusic HTTP  ");
