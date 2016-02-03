@@ -3,6 +3,7 @@
  */
 
 var restify = require('restify');
+//var cors = require('cors');
 var config = require('config');
 var dbModel = require('dvp-dbmodels');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
@@ -20,6 +21,12 @@ var server = restify.createServer({
     name: 'localhost',
     version: '1.0.0'
 });
+
+restify.CORS.ALLOW_HEADERS.push('authorization');
+
+server.use(restify.CORS());
+server.use(restify.fullResponse());
+
 
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
@@ -101,7 +108,6 @@ server.get('/DVP/API/:version/QueueMusic/Profiles', function(req, res, next) {
 
 
 server.del('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next) {
-
     logger.debug("DVP-QueueMusic.destroyQueueMusic HTTP  ");
 
 
@@ -195,9 +201,10 @@ server.post('/DVP/API/:version/QueueMusic/Profile', function(req, res, next){
 
     var profileData=req.body;
     var status = false;
+
     if(profileData) {
 
-        var profile = dbModel.QueueProfile.build({
+       var profile = dbModel.QueueProfile.build({
 
 
             Name: profileData.Name,
@@ -249,7 +256,7 @@ server.post('/DVP/API/:version/QueueMusic/Profile', function(req, res, next){
             });
     }else{
 
-        logger.error("DVP-SystemRegistry.CreateQueueMusic Object Validation Failed");
+        logger.error("DVP-SystemRegistry.CreateQueueMusic Object Validation Failed", err);
         var instance = msg.FormatMessage(undefined,"Store Profile Object Validation Failed", status,undefined);
         res.write(instance);
         res.end();
@@ -268,7 +275,7 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', function(req, res, next
 
     dbModel.QueueProfile.find({where: [{Name: req.params.name}]}).then(function (obj) {
 
-
+        var profileData = req.body;
 
         if(obj){
 
@@ -364,6 +371,33 @@ sre.init(server, {
 
 
 
+function Crossdomain(req,res,next){
+
+
+    var xml='<?xml version=""1.0""?><!DOCTYPE cross-domain-policy SYSTEM ""http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd""> <cross-domain-policy>    <allow-access-from domain=""*"" />        </cross-domain-policy>';
+
+    /*var xml='<?xml version="1.0"?>\n';
+
+     xml+= '<!DOCTYPE cross-domain-policy SYSTEM "/xml/dtds/cross-domain-policy.dtd">\n';
+     xml+='';
+     xml+=' \n';
+     xml+='\n';
+     xml+='';*/
+    req.setEncoding('utf8');
+    res.end(xml);
+
+}
+function Clientaccesspolicy(req,res,next){
+
+
+    var xml='<?xml version="1.0" encoding="utf-8" ?>       <access-policy>        <cross-domain-access>        <policy>        <allow-from http-request-headers="*">        <domain uri="*"/>        </allow-from>        <grant-to>        <resource include-subpaths="true" path="/"/>        </grant-to>        </policy>        </cross-domain-access>        </access-policy>';
+    req.setEncoding('utf8');
+    res.end(xml);
+
+}
+
+server.get("/crossdomain.xml",Crossdomain);
+server.get("/clientaccesspolicy.xml",Clientaccesspolicy);
 
 
 
