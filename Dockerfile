@@ -8,7 +8,7 @@
 #EXPOSE 8842
 
 
-FROM node:argon
+FROM node:5.10.0
 RUN git clone git://github.com/DuoSoftware/DVP-QueueMusic.git /usr/local/src/queuemusic
 RUN cd /usr/local/src/queuemusic;
 WORKDIR /usr/local/src/queuemusic
