@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
-    "dvp-common": "^0.0.16",
+    "dvp-common": "^0.1.1",
     "dvp-dbmodels": "^0.0.38",
     "restify-jwt": "^0.4.0",
     "restify": "^4.0.0",
