@@ -385,7 +385,7 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
 
         dbModel.QueueProfile.find({where: [{Name: req.params.name}]}).then(function (obj) {
 
-
+            var profileData = req.body;
 
             if(obj){
 
