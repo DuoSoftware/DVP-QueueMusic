@@ -385,7 +385,7 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
 
         dbModel.QueueProfile.find({where: [{Name: req.params.name}]}).then(function (obj) {
 
-
+            var profileData = req.body;
 
             if(obj){
 
@@ -496,6 +496,6 @@ sre.init(server, {
 
 
 
-server.listen(hostPort, hostIp, function () {
+server.listen(hostPort, function () {
     console.log('%s listening at %s', server.name, server.url);
 });
