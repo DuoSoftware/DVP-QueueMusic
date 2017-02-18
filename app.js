@@ -309,6 +309,7 @@ server.post('/DVP/API/:version/QueueMusic/Profile', authorization({resource:"que
                 Announcement: profileData.Announcement,
                 FirstAnnounement:  profileData.FirstAnnounement,
                 AnnouncementTime: profileData.AnnouncementTime,
+                MaxQueueTime: profileData.MaxQueueTime,
                 PositionAnnouncement: profileData.PositionAnnouncement
 
 
