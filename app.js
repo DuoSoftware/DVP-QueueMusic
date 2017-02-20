@@ -405,7 +405,8 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
                     Announcement: profileData.Announcement,
                     FirstAnnounement:  profileData.FirstAnnounement,
                     AnnouncementTime: profileData.AnnouncementTime,
-                    PositionAnnouncement: profileData.PositionAnnouncement
+                    PositionAnnouncement: profileData.PositionAnnouncement,
+                    MaxQueueTime: profileData.MaxQueueTime
 
 
 
