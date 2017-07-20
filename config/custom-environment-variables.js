@@ -8,6 +8,17 @@ module.exports = {
         "Host":"SYS_DATABASE_HOST",
         "Database":"SYS_DATABASE_POSTGRES_USER"
     },
+
+    "Mongo":
+    {
+        "ip":"SYS_MONGO_HOST",
+        "port":"SYS_MONGO_PORT",
+        "dbname":"SYS_MONGO_DB",
+        "password":"SYS_MONGO_PASSWORD",
+        "user":"SYS_MONGO_USER",
+        "replicaset" :"SYS_MONGO_REPLICASETNAME"
+    },
+
      "Redis":
     {
         "mode":"SYS_REDIS_MODE",
