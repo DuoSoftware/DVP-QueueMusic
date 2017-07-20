@@ -584,13 +584,13 @@ server.get('/DVP/API/:version/QueueMusic/AgentGreeting/:name/:language', authori
 
                                     jsonString = messageFormatter.FormatMessage(undefined, "Get User greeting Successful", true, greetings[greetingTime]);
                                     res.writeHead(200);
-                                    res.end(jsonString);
+                                    res.end(greetings[greetingTime]);
 
                                 }else if(greetings["default"]){
 
                                     jsonString = messageFormatter.FormatMessage(undefined, "Get User greeting Successful", true, greetings["default"]);
                                     res.writeHead(200);
-                                    res.end(jsonString);
+                                    res.end(greetings["default"]);
 
                                 }else{
 
