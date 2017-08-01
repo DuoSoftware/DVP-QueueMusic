@@ -15,6 +15,7 @@ module.exports = {
     "port": 6389,
     "user": "duo",
     "password": "DuoS123",
+    "mode": "sentinel",
     "sentinels":{
       "hosts": "138.197.90.92,45.55.205.92,138.197.90.92",
       "port":16389,
@@ -30,6 +31,7 @@ module.exports = {
     "port": 6389,
     "user": "duo",
     "password": "DuoS123",
+    "mode": "sentinel",
     "sentinels":{
       "hosts": "138.197.90.92,45.55.205.92,138.197.90.92",
       "port":16389,
