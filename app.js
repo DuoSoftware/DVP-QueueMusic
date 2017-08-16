@@ -375,7 +375,8 @@ server.post('/DVP/API/:version/QueueMusic/Profile', authorization({resource:"que
                 FirstAnnounement:  profileData.FirstAnnounement,
                 AnnouncementTime: profileData.AnnouncementTime,
                 MaxQueueTime: profileData.MaxQueueTime,
-                PositionAnnouncement: profileData.PositionAnnouncement
+                PositionAnnouncement: profileData.PositionAnnouncement,
+                Language: profileData.Language
 
 
 
@@ -471,9 +472,8 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
                     FirstAnnounement:  profileData.FirstAnnounement,
                     AnnouncementTime: profileData.AnnouncementTime,
                     PositionAnnouncement: profileData.PositionAnnouncement,
-                    MaxQueueTime: profileData.MaxQueueTime
-
-
+                    MaxQueueTime: profileData.MaxQueueTime,
+                    Language: profileData.Language
 
                 }).then(function (obj) {
                     try {
