@@ -9,11 +9,14 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var msg = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 //var sre = require('swagger-restify-express');
+var util = require("util");
 var format = require("stringformat");
-
+var User = require('dvp-mongomodels/model/User');
+var Organization = require('dvp-mongomodels/model/Organisation');
 var jwt = require('restify-jwt');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
+var moment = require('moment-timezone');
 
 
 
@@ -38,6 +41,68 @@ server.use(restify.fullResponse());
 server.use(jwt({secret: secret.Secret}));
 
 
+var mongoip=config.Mongo.ip;
+var mongoport=config.Mongo.port;
+var mongodb=config.Mongo.dbname;
+var mongouser=config.Mongo.user;
+var mongopass = config.Mongo.password;
+var mongoreplicaset= config.Mongo.replicaset;
+
+var mongoose = require('mongoose');
+var connectionstring = '';
+mongoip = mongoip.split(',');
+
+if(util.isArray(mongoip)){
+    if(mongoip.length > 1){
+        mongoip.forEach(function(item){
+            connectionstring += util.format('%s:%d,',item,mongoport)
+        });
+
+        connectionstring = connectionstring.substring(0, connectionstring.length - 1);
+        connectionstring = util.format('mongodb://%s:%s@%s/%s',mongouser,mongopass,connectionstring,mongodb);
+
+        if(mongoreplicaset){
+            connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
+        }
+    }
+    else
+    {
+        connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip[0],mongoport,mongodb);
+    }
+}else{
+
+    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb);
+}
+
+console.log(connectionstring);
+mongoose.connect(connectionstring,{server:{auto_reconnect:true}});
+
+
+mongoose.connection.on('error', function (err) {
+    console.error( new Error(err));
+    mongoose.disconnect();
+
+});
+
+mongoose.connection.on('opening', function() {
+    console.log("reconnecting... %d", mongoose.connection.readyState);
+});
+
+
+mongoose.connection.on('disconnected', function() {
+    console.error( new Error('Could not connect to database'));
+    mongoose.connect(connectionstring,{server:{auto_reconnect:true}});
+});
+
+mongoose.connection.once('open', function() {
+    console.log("Connected to db");
+
+});
+
+
+mongoose.connection.on('reconnected', function () {
+    console.log('MongoDB reconnected!');
+});
 
 
 server.get('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource:"queuemusic", action:"read"}),function(req, res, next) {
@@ -475,6 +540,120 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
     return next();
 
 });
+
+
+server.get('/DVP/API/:version/QueueMusic/AgentGreeting/:name/:language', authorization({resource:"queuemusic", action:"read"}),function(req, res, next) {
+
+    logger.debug("DVP-QueueMusic.GetQueueMusics HTTP  ");
+
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+
+
+    Organization.findOne({id: company}, function(err, organization) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Get Organisations Failed", false, undefined);
+            res.writeHead(404);
+            res.end(jsonString);
+        }else{
+            User.findOne({username: req.params.name,company: company, tenant: tenant}, function(err, users) {
+                if (err) {
+
+                    jsonString = messageFormatter.FormatMessage(err, "Get User Failed", false, undefined);
+                    res.writeHead(404);
+                    res.end(jsonString);
+
+                }else{
+
+                    if(users) {
+
+                        jsonString = messageFormatter.FormatMessage(err, "Get User Successful", true, users.user_meta);
+                        if(organization && organization.timeZone && organization.timeZone.tz){
+
+                            var time = moment().tz(organization.timeZone.tz);
+                            var greetingTime = getGreetingTime(time);
+                            var language = req.params.language;
+
+                            if(users.user_meta && users.user_meta.greetings && users.user_meta.greetings[language]){
+
+                                var greetings =  users.user_meta.greetings[language];
+
+                                if(greetings[greetingTime]){
+
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Get User greeting Successful", true, greetings[greetingTime]);
+                                    res.writeHead(200);
+                                    res.end(greetings[greetingTime]);
+
+                                }else if(greetings["default"]){
+
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Get User greeting Successful", true, greetings["default"]);
+                                    res.writeHead(200);
+                                    res.end(greetings["default"]);
+
+                                }else{
+
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Get User greeting Failed", false, undefined);
+                                    res.writeHead(404);
+                                    res.end(jsonString);
+                                }
+
+
+                            }else{
+                                jsonString = messageFormatter.FormatMessage(undefined, "Get User greeting Failed", false, undefined);
+                                res.writeHead(404);
+                                res.end(jsonString);
+                            }
+
+                        }else{
+
+                            jsonString = messageFormatter.FormatMessage(undefined, "Get Organization timezone Failed", false, undefined);
+                            res.writeHead(404);
+                            res.end(jsonString);
+                        }
+
+                    }else{
+                        jsonString = messageFormatter.FormatMessage(undefined, "Get User Failed", false, undefined);
+                        res.writeHead(404);
+                        res.end(jsonString);
+
+                    }
+                }
+
+            });
+        }
+
+    });
+
+    return next();
+
+});
+
+
+
+
+function getGreetingTime (m) {
+    var g = null; //return g
+
+    if(!m || !m.isValid()) { return; } //if we can't find a valid or filled moment, we return.
+
+    var split_afternoon = 12 //24hr time to split the afternoon
+    var split_evening = 17 //24hr time to split the evening
+    var currentHour = parseFloat(m.format("HH"));
+
+    if(currentHour >= split_afternoon && currentHour <= split_evening) {
+        g = "afternoon";
+    } else if(currentHour >= split_evening) {
+        g = "evening";
+    } else {
+        g = "morning";
+    }
+
+    return g;
+}
+
+
 
 
 
