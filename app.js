@@ -473,7 +473,8 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
                     AnnouncementTime: profileData.AnnouncementTime,
                     PositionAnnouncement: profileData.PositionAnnouncement,
                     MaxQueueTime: profileData.MaxQueueTime,
-                    Language: profileData.Language
+                    Language: profileData.Language,
+                    DialTime: profileData.DialTime
 
                 }).then(function (obj) {
                     try {
