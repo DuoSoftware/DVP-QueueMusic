@@ -539,11 +539,12 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
                     PositionAnnouncement: profileData.PositionAnnouncement,
                     MaxQueueTime: profileData.MaxQueueTime,
                     Language: profileData.Language,
-                    DialTime: profileData.DialTime
+                    DialTime: profileData.DialTime,
+                    BusinessUnit:""
 
                 };
 
-                if(profileData.BusinessUnit)
+                if(profileData.BusinessUnit )
                 {
                     BusinessUnit.findOne({
                         company: company,
@@ -565,7 +566,7 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
                             else
                             {
                                 logger.error('DVP-QueueMusic.UpdateQueueProfile No Business Units found ', errUnit);
-                                updateObj.BusinessUnit=null;
+                                updateObj.BusinessUnit="";
                             }
                         }
 
