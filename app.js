@@ -17,6 +17,7 @@ var jwt = require('restify-jwt');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var moment = require('moment-timezone');
+var BusinessUnit = require('dvp-mongomodels/model/BusinessUnit').BusinessUnit;
 
 
 
@@ -347,86 +348,150 @@ server.get('/DVP/API/:version/QueueMusic/plain/Profile/:name', authorization({re
 server.post('/DVP/API/:version/QueueMusic/Profile', authorization({resource:"queuemusic", action:"write"}),function(req, res, next){
 
 
-    var company;
-    var tenant;
+    try {
+        var company;
+        var tenant;
 
-    if(req&& req.user && req.user.company && req.user.tenant) {
+        if (req && req.user && req.user.company && req.user.tenant) {
 
-        company =req.user.company;
-        tenant = req.user.tenant;
-
-
-        var profileData=req.body;
-        var status = false;
-        if(profileData) {
-
-            var profile = dbModel.QueueProfile.build({
+            company = req.user.company;
+            tenant = req.user.tenant;
 
 
-                Name: profileData.Name,
-                Description: profileData.Description,
-                Class: profileData.Class,
-                Type: profileData.Type,
-                Category: profileData.Category,
-                CompanyId:company,
-                TenantId:tenant,
-                MOH: profileData.MOH,
-                Announcement: profileData.Announcement,
-                FirstAnnounement:  profileData.FirstAnnounement,
-                AnnouncementTime: profileData.AnnouncementTime,
-                MaxQueueTime: profileData.MaxQueueTime,
-                PositionAnnouncement: profileData.PositionAnnouncement,
-                Language: profileData.Language
+            var profileData = req.body;
+            var status = false;
+            if (profileData) {
+
+                var profile = dbModel.QueueProfile.build({
 
 
+                    Name: profileData.Name,
+                    Description: profileData.Description,
+                    Class: profileData.Class,
+                    Type: profileData.Type,
+                    Category: profileData.Category,
+                    CompanyId: company,
+                    TenantId: tenant,
+                    MOH: profileData.MOH,
+                    Announcement: profileData.Announcement,
+                    FirstAnnounement: profileData.FirstAnnounement,
+                    AnnouncementTime: profileData.AnnouncementTime,
+                    MaxQueueTime: profileData.MaxQueueTime,
+                    PositionAnnouncement: profileData.PositionAnnouncement,
+                    Language: profileData.Language
 
-            });
+
+                });
+
+                if (profileData.BusinessUnit) {
+                    BusinessUnit.findOne({
+                        company: company,
+                        tenant: tenant,
+                        unitName: profileData.BusinessUnit
+                    }, function (errUnit, resUnit) {
+
+                        if (errUnit) {
+                            logger.error('DVP-QueueMusic.CreateQueueMusic Error in searching BusinessUnit ', errUnit);
+                            profile.BusinessUnit=null;
+                        }
+                        else {
+                            if (resUnit) {
+                                profile.BusinessUnit = resUnit.unitName;
+
+                            }
+                            else {
+                                logger.error('DVP-QueueMusic.CreateQueueMusic No BusinessUnit found ');
+                                profile.BusinessUnit=null;
+                            }
+                        }
+
+                        profile
+                            .save()
+                            .then(function (obj) {
+                                try {
 
 
-            profile
-                .save()
-                .then(function (obj) {
-                    try {
+                                    logger.debug('DVP-QueueMusic.CreateQueueMusic PGSQL object saved successful ');
+                                    status = true;
+
+                                    var instance = msg.FormatMessage(undefined, "Store Profile Done", status, obj);
+                                    res.write(instance);
+                                    res.end();
 
 
-                        logger.debug('DVP-QueueMusic.CreateQueueMusic PGSQL object saved successful ');
-                        status = true;
+                                }
+                                catch (ex) {
+                                    logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", ex);
 
-                        var instance = msg.FormatMessage(undefined,"Store Profile Done", status,obj);
+                                }
+
+                            }).catch(function (err) {
+
+                            logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
+                            var instance = msg.FormatMessage(undefined, "Store Profile Failed", status, err);
+                            res.write(instance);
+                            res.end();
+
+
+                        });
+
+                    });
+
+
+                }
+                else
+                {
+                    profile
+                        .save()
+                        .then(function (obj) {
+                            try {
+
+
+                                logger.debug('DVP-QueueMusic.CreateQueueMusic PGSQL object saved successful ');
+                                status = true;
+
+                                var instance = msg.FormatMessage(undefined, "Store Profile Done", status, obj);
+                                res.write(instance);
+                                res.end();
+
+
+                            }
+                            catch (ex) {
+                                logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", ex);
+
+                            }
+
+                        }).catch(function (err) {
+
+                        logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
+                        var instance = msg.FormatMessage(undefined, "Store Profile Failed", status, err);
                         res.write(instance);
                         res.end();
 
 
-                    }
-                    catch (ex) {
-                        logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", ex);
-
-                    }
-
-                }).catch(function(err){
-
-                    logger.error("DVP-SystemRegistry.CreateQueueMusic failed ", err);
-                    var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
-                    res.write(instance);
-                    res.end();
+                    });
+                }
 
 
 
-                });
-        }else{
+            } else {
 
-            logger.error("DVP-SystemRegistry.CreateQueueMusic Object Validation Failed");
-            var instance = msg.FormatMessage(undefined,"Store Profile Object Validation Failed", status,undefined);
-            res.write(instance);
+                logger.error("DVP-SystemRegistry.CreateQueueMusic Object Validation Failed");
+                var instance = msg.FormatMessage(undefined, "Store Profile Object Validation Failed", status, undefined);
+                res.write(instance);
+                res.end();
+            }
+
+
+        } else {
+
+            res.write(msg.FormatMessage(new Error("Token error, no company data found"), "Token error, no company data found", false, undefined));
             res.end();
+
         }
-
-
-    }else{
-
-        res.write(msg.FormatMessage(err, "Token error, no company data found", false, undefined));
+    } catch (e) {
+        res.write(msg.FormatMessage(e, "Exception in operation : Create Queue Music profile", false, undefined));
         res.end();
-
     }
 
 
@@ -440,7 +505,7 @@ server.post('/DVP/API/:version/QueueMusic/Profile', authorization({resource:"que
 
 server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource:"queuemusic", action:"write"}),function(req, res, next) {
 
-    logger.debug("DVP-QueueMusic.GetQueueMusic HTTP  ");
+    logger.debug("DVP-QueueMusic.UpdateQueueProfile HTTP  ");
 
 
     var company;
@@ -457,7 +522,7 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
 
             if(obj){
 
-                obj.updateAttributes({
+                var updateObj={
 
 
                     Name: profileData.Name,
@@ -474,42 +539,107 @@ server.put('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource
                     PositionAnnouncement: profileData.PositionAnnouncement,
                     MaxQueueTime: profileData.MaxQueueTime,
                     Language: profileData.Language,
-                    DialTime: profileData.DialTime
+                    DialTime: profileData.DialTime,
+                    BusinessUnit:""
 
-                }).then(function (obj) {
-                    try {
+                };
+
+                if(profileData.BusinessUnit )
+                {
+                    BusinessUnit.findOne({
+                        company: company,
+                        tenant: tenant,
+                        unitName: profileData.BusinessUnit
+                    },function (errUnit,resUnit) {
+
+                        if(errUnit)
+                        {
+                            logger.error('DVP-QueueMusic.UpdateQueueProfile Error in searching BusinessUnit ', errUnit);
+                            updateObj.BusinessUnit=null;
+                        }
+                        else
+                        {
+                            if(resUnit)
+                            {
+                                updateObj.BusinessUnit=resUnit.unitName;
+                            }
+                            else
+                            {
+                                logger.error('DVP-QueueMusic.UpdateQueueProfile No Business Units found ', errUnit);
+                                updateObj.BusinessUnit="";
+                            }
+                        }
+
+                        obj.updateAttributes(updateObj).then(function (obj) {
+                            try {
 
 
-                        logger.debug('DVP-QueueMusic.UpdateQueueMusic PGSQL object saved successful ');
-                        status = true;
+                                logger.debug('DVP-QueueMusic.UpdateQueueMusic PGSQL object saved successful ');
+                                status = true;
 
-                        var instance = msg.FormatMessage(undefined,"Updated Profile Done", status,obj);
+                                var instance = msg.FormatMessage(undefined,"Updated Profile Done", status,obj);
+                                res.write(instance);
+                                res.end();
+
+
+                            }
+                            catch (ex) {
+                                logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", ex);
+
+                            }
+
+                        }).catch(function(err){
+
+                            logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", err);
+                            var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
+                            res.write(instance);
+                            res.end();
+
+
+
+                        });
+                    })
+
+                }
+                else
+                {
+                    obj.updateAttributes(updateObj).then(function (obj) {
+                        try {
+
+
+                            logger.debug('DVP-QueueMusic.UpdateQueueMusic PGSQL object saved successful ');
+                            status = true;
+
+                            var instance = msg.FormatMessage(undefined,"Updated Profile Done", status,obj);
+                            res.write(instance);
+                            res.end();
+
+
+                        }
+                        catch (ex) {
+                            logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", ex);
+
+                        }
+
+                    }).catch(function(err){
+
+                        logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", err);
+                        var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
                         res.write(instance);
                         res.end();
 
 
-                    }
-                    catch (ex) {
-                        logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", ex);
 
-                    }
-
-                }).catch(function(err){
-
-                    logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", err);
-                    var instance = msg.FormatMessage(undefined,"Store Profile Failed", status,err);
-                    res.write(instance);
-                    res.end();
+                    });
+                }
 
 
 
-                });
+            }
+            else{
 
-
-            }else{
-
-                logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ", err);
-                var instance = msg.FormatMessage(undefined,"No profile found", status,undefined);
+                logger.error("DVP-SystemRegistry.UpdateQueueMusic failed ");
+                var instance = msg.FormatMessage(undefined,"No profile found", false,undefined);
                 res.write(instance);
                 res.end();
 
@@ -662,19 +792,19 @@ function getGreetingTime (m) {
 //var basepath = 'http://'+ "127.0.0.1" + ':' + hostPort;
 
 /*
-sre.init(server, {
-        resourceName : 'QueueMusicService',
-        server : 'restify', // or express
-        httpMethods : ['GET', 'POST', 'PUT', 'DELETE'],
-        basePath : basepath,
-        ignorePaths : {
-            GET : ['path1', 'path2'],
-            POST : ['path1']
-        }
-    }
-);
+ sre.init(server, {
+ resourceName : 'QueueMusicService',
+ server : 'restify', // or express
+ httpMethods : ['GET', 'POST', 'PUT', 'DELETE'],
+ basePath : basepath,
+ ignorePaths : {
+ GET : ['path1', 'path2'],
+ POST : ['path1']
+ }
+ }
+ );
 
-*/
+ */
 
 
 
