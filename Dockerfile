@@ -8,7 +8,7 @@
 #EXPOSE 8843
 
 
-FROM node:5.10.0
+FROM node:9.9.0
 ARG VERSION_TAG
 RUN git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-QueueMusic.git /usr/local/src/queuemusic
 RUN cd /usr/local/src/queuemusic;
