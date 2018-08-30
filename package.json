@@ -7,7 +7,7 @@
     "config": "^1.15.0",
     "dvp-common": "1.1.0",
     "dvp-dbmodels": "^2.2.2",
-    "dvp-mongomodels": "4.9.7",
+    "dvp-mongomodels": "5.1.5",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",
     "restify": "^4.0.3",

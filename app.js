@@ -4,12 +4,12 @@
 
 var restify = require('restify');
 var config = require('config');
+var mongomodels = require('dvp-mongomodels');
 var dbModel = require('dvp-dbmodels');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var msg = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 //var sre = require('swagger-restify-express');
-var util = require("util");
 var format = require("stringformat");
 var User = require('dvp-mongomodels/model/User');
 var Organization = require('dvp-mongomodels/model/Organisation');
@@ -40,70 +40,6 @@ server.use(restify.CORS());
 server.use(restify.fullResponse());
 
 server.use(jwt({secret: secret.Secret}));
-
-
-var mongoip=config.Mongo.ip;
-var mongoport=config.Mongo.port;
-var mongodb=config.Mongo.dbname;
-var mongouser=config.Mongo.user;
-var mongopass = config.Mongo.password;
-var mongoreplicaset= config.Mongo.replicaset;
-
-var mongoose = require('mongoose');
-var connectionstring = '';
-mongoip = mongoip.split(',');
-
-if(util.isArray(mongoip)){
-    if(mongoip.length > 1){
-        mongoip.forEach(function(item){
-            connectionstring += util.format('%s:%d,',item,mongoport)
-        });
-
-        connectionstring = connectionstring.substring(0, connectionstring.length - 1);
-        connectionstring = util.format('mongodb://%s:%s@%s/%s',mongouser,mongopass,connectionstring,mongodb);
-
-        if(mongoreplicaset){
-            connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
-        }
-    }
-    else
-    {
-        connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip[0],mongoport,mongodb);
-    }
-}else{
-
-    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb);
-}
-
-console.log(connectionstring);
-mongoose.connect(connectionstring,{server:{auto_reconnect:true}});
-
-
-mongoose.connection.on('error', function (err) {
-    console.error( new Error(err));
-    mongoose.disconnect();
-
-});
-
-mongoose.connection.on('opening', function() {
-    console.log("reconnecting... %d", mongoose.connection.readyState);
-});
-
-
-mongoose.connection.on('disconnected', function() {
-    console.error( new Error('Could not connect to database'));
-    mongoose.connect(connectionstring,{server:{auto_reconnect:true}});
-});
-
-mongoose.connection.once('open', function() {
-    console.log("Connected to db");
-
-});
-
-
-mongoose.connection.on('reconnected', function () {
-    console.log('MongoDB reconnected!');
-});
 
 
 server.get('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource:"queuemusic", action:"read"}),function(req, res, next) {
