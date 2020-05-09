@@ -18,7 +18,7 @@ var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var moment = require('moment-timezone');
 var BusinessUnit = require('dvp-mongomodels/model/BusinessUnit').BusinessUnit;
-
+var healthcheck = require('dvp-healthcheck/DBHealthChecker');
 
 
 var hostIp = config.Host.Ip;
@@ -51,8 +51,10 @@ restify.CORS.ALLOW_HEADERS.push('authorization');
 server.use(restify.CORS());
 server.use(restify.fullResponse());
 
-server.use(jwt({secret: secret.Secret}));
+server.use(jwt({secret: secret.Secret}).unless({path: ['/healthcheck']}));
 
+var hc = new healthcheck(server, { pg: dbModel.SequelizeConn, mongo:mongomodels.connection });
+hc.Initiate();
 
 server.get('/DVP/API/:version/QueueMusic/Profile/:name', authorization({resource:"queuemusic", action:"read"}),function(req, res, next) {
 
